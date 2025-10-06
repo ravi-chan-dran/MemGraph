@@ -7,7 +7,8 @@ import uuid
 from .extractor import memory_extractor
 from .retrieval import memory_retriever
 from ..core.bedrock import bedrock_client
-from ..stores import kv_store, vector_store, graph_store
+from ..stores import kv_store, vector_store
+from ..stores.graph_neo4j import get_graph_store
 
 
 class MemoryService:
@@ -63,15 +64,15 @@ class MemoryService:
                 )
             
             # Store in graph
-            graph_store.upsert_user(guid)
+            get_get_graph_store()().upsert_user(guid)
             
             # Store entities
             for entity in extracted.get("entities", []):
-                graph_store.upsert_entity(entity["name"], entity["type"])
+                get_graph_store().upsert_entity(entity["name"], entity["type"])
             
             # Store fact relationships
             for fact in extracted.get("facts", []):
-                graph_store.upsert_fact_rel(
+                get_graph_store().upsert_fact_rel(
                     guid=guid,
                     key=fact["key"],
                     value=fact["value"],
@@ -82,7 +83,7 @@ class MemoryService:
             
             # Store triples
             for triple in extracted.get("triples", []):
-                graph_store.upsert_triple(
+                get_graph_store().upsert_triple(
                     subject=triple["subject"],
                     predicate=triple["predicate"],
                     object=triple["object"],
@@ -134,7 +135,7 @@ class MemoryService:
             graph_hits = []
             if include_graph:
                 for token in query_tokens:
-                    paths = graph_store.find_paths(guid, token, k=3)
+                    paths = get_graph_store().find_paths(guid, token, k=3)
                     graph_hits.extend(paths)
             
             # Build context card

@@ -12,7 +12,7 @@ import uvicorn
 from app.memory.service import memory_service
 from app.core.config import settings
 from app.core.bedrock import bedrock_client
-from app.stores import graph_store
+from app.stores.graph_neo4j import get_get_graph_store()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -115,7 +115,7 @@ async def memory_explain(request: MemoryExplainRequest, token: str = Depends(ver
     """Explain shortest path and generate brief explanation."""
     try:
         # Get shortest paths
-        paths = graph_store.find_paths(request.guid, request.topic, request.k)
+        paths = get_graph_store().find_paths(request.guid, request.topic, request.k)
         
         # Generate explanation using Claude
         if paths:

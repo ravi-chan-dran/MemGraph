@@ -27,7 +27,7 @@ class ChromaVectorStore:
         """Get or create the episodes_mem collection."""
         try:
             return self.client.get_collection(name=self.collection_name)
-        except ValueError:
+        except Exception:
             return self.client.create_collection(
                 name=self.collection_name,
                 metadata={"description": "Episode memories for semantic search"}

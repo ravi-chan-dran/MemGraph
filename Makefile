@@ -122,11 +122,11 @@ setup-neo4j:
 		--name neo4j-memory \
 		-p 7474:7474 \
 		-p 7687:7687 \
-		-e NEO4J_AUTH=neo4j/password \
+		-e NEO4J_AUTH=neo4j/test123456 \
 		-e NEO4J_PLUGINS='["apoc"]' \
 		neo4j:latest
 	@echo "Neo4j is starting up. Access at http://localhost:7474"
-	@echo "Username: neo4j, Password: password"
+	@echo "Username: neo4j, Password: test123456"
 
 stop-neo4j:
 	@echo "Stopping Neo4j container..."

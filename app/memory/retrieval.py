@@ -6,7 +6,8 @@ import numpy as np
 from datetime import datetime, timedelta
 
 from ..core.bedrock import bedrock_client
-from ..stores import kv_store, vector_store, graph_store
+from ..stores import kv_store, vector_store
+from ..stores.graph_neo4j import get_graph_store
 
 
 class MemoryRetriever:
@@ -46,7 +47,7 @@ class MemoryRetriever:
     def graph_proximity_score(self, guid: str, topic: str) -> float:
         """Calculate graph proximity score."""
         try:
-            path_len = graph_store.shortest_path_len(guid, topic)
+            path_len = get_graph_store().shortest_path_len(guid, topic)
             return 1.0 / (1.0 + path_len) if path_len < 99 else 0.0
         except:
             return 0.0
@@ -135,7 +136,7 @@ class MemoryRetriever:
             # Get memories associated with these entities
             memory_ids = set()
             for entity_id in entity_ids:
-                entity_data = graph_store.get_entity(entity_id)
+                entity_data = get_graph_store().get_entity(entity_id)
                 if entity_data and "memory_refs" in entity_data:
                     memory_ids.update(entity_data["memory_refs"])
             
@@ -184,13 +185,13 @@ class MemoryRetriever:
                 entity_id = f"{entity_type.lower()}:{entity_name.lower().replace(' ', '_')}"
             else:
                 # Search across all types
-                search_results = graph_store.search_entities(entity_name, limit=1)
+                search_results = get_graph_store().search_entities(entity_name, limit=1)
                 if not search_results:
                     return {"entity": None, "memories": [], "relationships": []}
                 entity_id = search_results[0]["id"]
             
             # Get entity data
-            entity_data = graph_store.get_entity(entity_id)
+            entity_data = get_graph_store().get_entity(entity_id)
             if not entity_data:
                 return {"entity": None, "memories": [], "relationships": []}
             
@@ -203,7 +204,7 @@ class MemoryRetriever:
                     memories.append(memory_data)
             
             # Get relationships
-            relationships = graph_store.get_entity_relationships(entity_id)
+            relationships = get_graph_store().get_entity_relationships(entity_id)
             
             return {
                 "entity": entity_data,
@@ -280,7 +281,7 @@ class MemoryRetriever:
             memory_count = len(memory_keys)
             
             # Get graph stats
-            graph_stats = graph_store.get_graph_stats()
+            graph_stats = get_graph_store().get_graph_stats()
             
             # Get vector store stats
             vector_stats = vector_store.get_collection_info()

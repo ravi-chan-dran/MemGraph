@@ -214,5 +214,11 @@ class Neo4jGraphStore:
             return False
 
 
-# Global Neo4j store instance
-graph_store = Neo4jGraphStore()
+# Global Neo4j store instance (lazy initialization)
+graph_store = None
+
+def get_graph_store():
+    global graph_store
+    if graph_store is None:
+        graph_store = Neo4jGraphStore()
+    return graph_store

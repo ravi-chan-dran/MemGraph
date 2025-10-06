@@ -2,7 +2,8 @@
 
 import os
 from typing import Optional
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -16,7 +17,7 @@ class Settings(BaseSettings):
     # Neo4j Configuration
     neo4j_uri: str = Field(default="bolt://localhost:7687", env="NEO4J_URI")
     neo4j_user: str = Field(default="neo4j", env="NEO4J_USER")
-    neo4j_password: str = Field(default="test123", env="NEO4J_PASSWORD")
+    neo4j_password: str = Field(default="test123456", env="NEO4J_PASSWORD")
     
     # Database Configuration
     db_url: str = Field(default="sqlite:///./memory.db", env="DB_URL")
@@ -47,6 +48,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"
 
 
 # Global settings instance

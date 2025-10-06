@@ -7,6 +7,7 @@ from typing import Dict, List, Any, Optional
 import uvicorn
 
 from ..core.config import settings
+from ..core.bedrock import bedrock_client
 from ..memory.service import memory_service
 
 
@@ -347,8 +348,8 @@ async def get_subgraph(
 ):
     """Get subgraph for a user."""
     try:
-        from ..stores import graph_store
-        nodes = graph_store.get_subgraph(guid, since_days)
+        from ..stores.graph_neo4j import get_graph_store
+        nodes = get_graph_store().get_subgraph(guid, since_days)
         return {"success": True, "nodes": nodes, "count": len(nodes)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -362,8 +363,8 @@ async def get_paths(
 ):
     """Find paths between user and topic."""
     try:
-        from ..stores import graph_store
-        paths = graph_store.find_paths(guid, topic, k)
+        from ..stores.graph_neo4j import get_graph_store
+        paths = get_graph_store().find_paths(guid, topic, k)
         return {"success": True, "paths": paths, "count": len(paths)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
