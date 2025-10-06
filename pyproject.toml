@@ -1,0 +1,173 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bedrock-graph-memory-poc"
+version = "1.0.0"
+description = "A proof-of-concept system for graph-based memory management powered by AWS Bedrock"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"},
+]
+keywords = ["aws", "bedrock", "graph", "memory", "ai", "neo4j", "chromadb"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "chromadb>=0.4.0",
+    "neo4j>=5.0.0",
+    "boto3>=1.28.0",
+    "python-dotenv>=1.0.0",
+    "numpy>=1.24.0",
+    "streamlit>=1.28.0",
+    "langgraph>=0.0.40",
+    "langchain-core>=0.1.0",
+    "typer[all]>=0.9.0",
+    "requests>=2.31.0",
+    "pyvis>=0.3.2",
+    "networkx>=3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+test = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "httpx>=0.25.0",
+]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.22.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/bedrock-graph-memory-poc"
+Documentation = "https://github.com/yourusername/bedrock-graph-memory-poc#readme"
+Repository = "https://github.com/yourusername/bedrock-graph-memory-poc.git"
+Issues = "https://github.com/yourusername/bedrock-graph-memory-poc/issues"
+
+[project.scripts]
+memory-api = "app.api.routes:main"
+memory-cli = "orchestrator.mock_cli:app"
+memory-ui = "ui.streamlit_app:main"
+memory-seed = "scripts.seed_demo:seed_demo_data"
+memory-mcp = "mcp_server:main"
+memory-ab = "ab_relay:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*", "orchestrator*", "ui*", "scripts*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.txt", "*.yml", "*.yaml"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["app", "orchestrator", "ui", "scripts"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "--tb=short",
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["app", "orchestrator", "ui", "scripts"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
