@@ -52,6 +52,11 @@ seed:
 	@echo "Seeding demo data..."
 	@source .venv/bin/activate && python scripts/seed_demo.py
 
+seed-once:
+	@echo "Seeding demo data (first time only)..."
+	@source .venv/bin/activate && python scripts/seed_demo.py
+	@echo "✅ Demo data seeded! Now run 'make demo-on' to start services."
+
 # Demo orchestration
 demo-on:
 	@echo "Starting demo environment with improved startup script..."

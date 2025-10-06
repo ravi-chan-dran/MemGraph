@@ -20,12 +20,13 @@ class MemoryExtractor:
     def extract_structured(self, text: str, channel: str, ts: str) -> Dict[str, Any]:
         """Extract structured facts and episodes from text."""
         system_prompt = """
-        Extract structured information from the text and return JSON with:
+        Extract structured information from the text and return ONLY valid JSON with:
         - facts: array of {key, value, confidence, reason}
         - episodes: array of {summary, importance, tags}
         
         Only include items with confidence >= 0.6.
         Be precise and factual.
+        Return ONLY the JSON object, no other text.
         """
         
         user_prompt = f"Text: {text}\nChannel: {channel}\nTimestamp: {ts}"
@@ -47,11 +48,12 @@ class MemoryExtractor:
         """Extract entities and triples from text."""
         system_prompt = """
         Extract entities and relationships from the text and return JSON with:
-        - entities: array of {name, type, aliases?} where type is one of: Person, Place, DateRange, Preference, Task, Product, Org, Event
-        - triples: array of {subject, predicate, object, confidence, time?} where predicate is one of: PREFERS, PLANS, OCCURS_ON, HAS_SIZE, HAS_ROLE, MENTIONS, RELATED_TO
+        - entities: array of {name, type, aliases?} where type is one of: Person, Place, DateRange, Preference, Task, Product, Org, Event, Policy, Process, Formula, Rate, Date, Plan
+        - triples: array of {subject, predicate, object, confidence, time?} where predicate is one of: PREFERS, PLANS, OCCURS_ON, HAS_SIZE, HAS_ROLE, MENTIONS, RELATED_TO, HAS_FORMULA, HAS_RATE, SCHEDULED_FOR, APPLIES_TO
         
         Only include items with confidence >= 0.6.
         Be precise about entity types and predicates.
+        For business/retirement plan content, create entities for key concepts like "match formula", "contribution rate", "payroll processing", etc.
         """
         
         user_prompt = f"Text: {text}\nChannel: {channel}\nTimestamp: {ts}"
@@ -62,11 +64,11 @@ class MemoryExtractor:
             result = json.loads(response)
             # Filter by confidence threshold and validate types
             if "entities" in result:
-                valid_types = {"Person", "Place", "DateRange", "Preference", "Task", "Product", "Org", "Event"}
+                valid_types = {"Person", "Place", "DateRange", "Preference", "Task", "Product", "Org", "Event", "Policy", "Process", "Formula", "Rate", "Date", "Plan"}
                 result["entities"] = [e for e in result["entities"] 
                                     if e.get("type") in valid_types and e.get("confidence", 0) >= self.confidence_threshold]
             if "triples" in result:
-                valid_predicates = {"PREFERS", "PLANS", "OCCURS_ON", "HAS_SIZE", "HAS_ROLE", "MENTIONS", "RELATED_TO"}
+                valid_predicates = {"PREFERS", "PLANS", "OCCURS_ON", "HAS_SIZE", "HAS_ROLE", "MENTIONS", "RELATED_TO", "HAS_FORMULA", "HAS_RATE", "SCHEDULED_FOR", "APPLIES_TO"}
                 result["triples"] = [t for t in result["triples"] 
                                    if t.get("predicate") in valid_predicates and t.get("confidence", 0) >= self.confidence_threshold]
             return result

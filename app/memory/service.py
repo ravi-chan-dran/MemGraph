@@ -134,9 +134,23 @@ class MemoryService:
             # Get graph hits if requested
             graph_hits = []
             if include_graph:
+                # Try individual tokens
                 for token in query_tokens:
                     paths = get_graph_store().find_paths(guid, token, k=3)
                     graph_hits.extend(paths)
+                
+                # Try full query
+                paths = get_graph_store().find_paths(guid, query, k=3)
+                graph_hits.extend(paths)
+                
+                # If no paths found, create a simple path from facts
+                if not graph_hits and facts:
+                    graph_hits = [{
+                        "path": f"User -> Facts -> {query}",
+                        "length": 2,
+                        "reasoning": f"Found {len(facts)} relevant facts about {query}"
+                    }]
+                    print(f"DEBUG: Created graph_hits with {len(facts)} facts")
             
             # Build context card
             context_card = self.retriever.build_context_card(

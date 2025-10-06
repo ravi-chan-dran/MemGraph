@@ -89,6 +89,21 @@ class ABRelay:
                         tools_invoked.append("memory.search")
             
             # Forward to model
+            context_card = None
+            graph_hits = None
+            if request.memory_on and self.memory_enabled and last_user_message:
+                # Get context card from memory search
+                search_result = memory_service.search_memory({
+                    "guid": request.guid,
+                    "query": last_user_message,
+                    "k": 5,
+                    "since_days": 30,
+                    "include_graph": True
+                })
+                if search_result.get("success"):
+                    context_card = search_result.get("context_card")
+                    graph_hits = search_result.get("graph_hits", [])
+            
             if request.model.startswith("claude"):
                 # Use Bedrock Claude
                 system_prompt = ""
@@ -125,7 +140,9 @@ class ABRelay:
                 "response": response,
                 "memory_used": request.memory_on and self.memory_enabled,
                 "tools_invoked": tools_invoked,
-                "duration": duration
+                "duration": duration,
+                "context_card": context_card,
+                "graph_hits": graph_hits
             }
             
         except Exception as e:

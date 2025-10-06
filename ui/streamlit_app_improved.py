@@ -1,6 +1,7 @@
 """Improved Streamlit UI for the Bedrock-powered Graph + Memory POC."""
 
 import streamlit as st
+import streamlit.components.v1 as components
 import requests
 import json
 import pandas as pd
@@ -195,6 +196,7 @@ def show_ab_demo():
                                 "content": result.get("response", "No response")
                             })
                             st.session_state.context_card = result.get("context_card")
+                            st.session_state.graph_paths = result.get("graph_hits", [])
                             st.rerun()
                         else:
                             st.error("Failed to get response")
@@ -272,6 +274,114 @@ def show_facts():
         st.error(f"Error loading facts: {e}")
 
 
+def show_why():
+    """Show graph visualization and reasoning."""
+    st.header("🤔 Why? - Graph Visualization")
+    st.markdown("**Interactive graph showing how AI connects information**")
+    
+    # Get graph data
+    try:
+        response = requests.get(f"{API_BASE}/graph/subgraph?guid=plan_sponsor_acme")
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("success") and data.get("nodes"):
+                nodes = data["nodes"]
+                st.success(f"Found {len(nodes)} nodes in the knowledge graph")
+                
+                # Create NetworkX graph
+                G = nx.Graph()
+                
+                # Add nodes
+                for node in nodes:
+                    node_id = f"{node['key']}: {node['value']}"
+                    G.add_node(node_id, 
+                              label=node['key'],
+                              value=node['value'],
+                              confidence=node['confidence'],
+                              source=node['channel'],
+                              timestamp=node['ts'])
+                
+                # Add edges (simplified - connect all nodes to user)
+                user_node = "User: plan_sponsor_acme"
+                G.add_node(user_node, label="User", value="plan_sponsor_acme")
+                
+                for node in nodes:
+                    node_id = f"{node['key']}: {node['value']}"
+                    G.add_edge(user_node, node_id)
+                
+                # Create Pyvis network
+                net = pyvis.network.Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
+                
+                # Add nodes to Pyvis
+                for node in G.nodes():
+                    node_data = G.nodes[node]
+                    if node == user_node:
+                        net.add_node(node, 
+                                   label=node_data['label'],
+                                   color="#ff6b6b",
+                                   size=30,
+                                   title=f"User: {node_data['value']}")
+                    else:
+                        confidence = node_data.get('confidence', 0.5)
+                        color_intensity = int(255 * confidence)
+                        net.add_node(node,
+                                   label=node_data['label'],
+                                   color=f"rgb({color_intensity}, {255-color_intensity//2}, 100)",
+                                   size=20,
+                                   title=f"Key: {node_data['label']}\nValue: {node_data['value']}\nConfidence: {confidence:.2f}\nSource: {node_data.get('source', 'unknown')}\nTime: {node_data.get('timestamp', 'unknown')}")
+                
+                # Add edges
+                for edge in G.edges():
+                    net.add_edge(edge[0], edge[1], color="#888888")
+                
+                # Configure physics
+                net.set_options("""
+                {
+                  "physics": {
+                    "enabled": true,
+                    "stabilization": {"iterations": 100},
+                    "barnesHut": {
+                      "gravitationalConstant": -2000,
+                      "centralGravity": 0.1,
+                      "springLength": 100,
+                      "springConstant": 0.05
+                    }
+                  }
+                }
+                """)
+                
+                # Generate HTML
+                net_html = net.generate_html()
+                
+                # Display the graph
+                components.html(net_html, height=600)
+                
+                # Show graph statistics
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total Nodes", len(nodes) + 1)
+                with col2:
+                    st.metric("Total Edges", len(nodes))
+                with col3:
+                    st.metric("Graph Density", f"{nx.density(G):.3f}")
+                
+                # Show node details
+                with st.expander("📋 Node Details", expanded=False):
+                    for node in nodes:
+                        st.write(f"**{node['key']}**: {node['value']}")
+                        st.write(f"  - Confidence: {node['confidence']}")
+                        st.write(f"  - Source: {node['channel']}")
+                        st.write(f"  - Time: {node['ts']}")
+                        st.write("---")
+                
+            else:
+                st.warning("No graph data available. Try asking some questions first!")
+        else:
+            st.error("Failed to load graph data")
+    except Exception as e:
+        st.error(f"Error loading graph: {e}")
+
+
 def main():
     """Main Streamlit application."""
     st.title("🧠 MemoryGraph")
@@ -292,8 +402,7 @@ def main():
         st.header("🔍 Evidence")
         st.info("Evidence will appear in the A/B Demo page after asking questions")
     elif page == "Why?":
-        st.header("🤔 Why?")
-        st.info("Graph visualizations will appear here after asking questions")
+        show_why()
     elif page == "Dashboard":
         st.header("📊 Dashboard")
         st.info("System overview and statistics")

@@ -85,23 +85,46 @@ def main():
         if relay_process:
             processes.append(("A/B Relay", relay_process))
         
-        # 4. Seed demo data
-        print("🌱 Seeding demo data...")
+        # 4. Check if seeding is needed
+        print("🔍 Checking if demo data needs seeding...")
         try:
-            result = subprocess.run([sys.executable, "scripts/seed_demo.py"], 
-                                  capture_output=True, text=True, timeout=120)
-            if result.returncode == 0:
-                print("✅ Demo data seeded successfully")
-                if result.stdout:
-                    print("Seeding output:", result.stdout[-200:])  # Show last 200 chars
+            # Check if data already exists by querying the API
+            response = requests.get("http://localhost:8000/memory/facts?guid=plan_sponsor_acme", timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("success") and data.get("count", 0) > 0:
+                    print("✅ Demo data already exists, skipping seeding")
+                else:
+                    print("🌱 No demo data found, seeding...")
+                    result = subprocess.run([sys.executable, "scripts/seed_demo.py"], 
+                                          capture_output=True, text=True, timeout=120)
+                    if result.returncode == 0:
+                        print("✅ Demo data seeded successfully")
+                        if result.stdout:
+                            print("Seeding output:", result.stdout[-200:])
+                    else:
+                        print(f"❌ Error seeding data: {result.stderr}")
             else:
-                print(f"❌ Error seeding data: {result.stderr}")
-                if result.stdout:
-                    print("Seeding output:", result.stdout[-200:])
-        except subprocess.TimeoutExpired:
-            print("❌ Timeout seeding demo data (120s)")
+                print("🌱 API not ready, seeding anyway...")
+                result = subprocess.run([sys.executable, "scripts/seed_demo.py"], 
+                                      capture_output=True, text=True, timeout=120)
+                if result.returncode == 0:
+                    print("✅ Demo data seeded successfully")
+                else:
+                    print(f"❌ Error seeding data: {result.stderr}")
         except Exception as e:
-            print(f"❌ Error seeding data: {e}")
+            print(f"⚠️  Could not check existing data, seeding anyway: {e}")
+            try:
+                result = subprocess.run([sys.executable, "scripts/seed_demo.py"], 
+                                      capture_output=True, text=True, timeout=120)
+                if result.returncode == 0:
+                    print("✅ Demo data seeded successfully")
+                else:
+                    print(f"❌ Error seeding data: {result.stderr}")
+            except subprocess.TimeoutExpired:
+                print("❌ Timeout seeding demo data (120s)")
+            except Exception as seed_error:
+                print(f"❌ Error seeding data: {seed_error}")
         
         # 5. Start Streamlit UI
         print("🖥️  Starting Streamlit UI...")
