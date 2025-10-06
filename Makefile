@@ -33,7 +33,7 @@ run-api:
 
 run-ui:
 	@echo "Starting Streamlit UI..."
-	streamlit run ui/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+	streamlit run ui/streamlit_app_improved.py --server.port 8501 --server.address 0.0.0.0
 
 run-relay:
 	@echo "Starting A/B testing relay..."
@@ -50,28 +50,40 @@ run-cli:
 # Data management
 seed:
 	@echo "Seeding demo data..."
-	python scripts/seed_demo.py
+	@source .venv/bin/activate && python scripts/seed_demo.py
 
 # Demo orchestration
-demo-on: install
-	@echo "Starting demo environment..."
+demo-on:
+	@echo "Starting demo environment with improved startup script..."
+	@source .venv/bin/activate && python scripts/start_demo.py
+
+demo-on-simple:
+	@echo "Starting demo environment (simple mode)..."
 	@echo "1. Starting API server in background..."
 	@$(MAKE) run-api &
+	@sleep 10
+	@echo "2. Starting MCP server in background..."
+	@$(MAKE) run-mcp &
 	@sleep 5
-	@echo "2. Seeding demo data..."
+	@echo "3. Starting A/B relay in background..."
+	@$(MAKE) run-relay &
+	@sleep 5
+	@echo "4. Seeding demo data..."
 	@$(MAKE) seed
-	@echo "3. Starting UI..."
+	@echo "5. Starting UI..."
 	@echo "Demo is ready! Access the UI at http://localhost:8501"
 	@echo "API docs available at http://localhost:8000/docs"
+	@echo "A/B Relay available at http://localhost:8001"
+	@echo "MCP Server available at http://localhost:8002"
 	@$(MAKE) run-ui
 
 demo-off:
 	@echo "Stopping demo services..."
 	@pkill -f "uvicorn app.api.routes:app" || true
-	@pkill -f "streamlit run ui/streamlit_app.py" || true
-	@pkill -f "python ab_relay.py" || true
 	@pkill -f "python mcp_server.py" || true
-	@echo "Demo services stopped"
+	@pkill -f "python ab_relay.py" || true
+	@pkill -f "streamlit run ui/streamlit_app.py" || true
+	@echo "All demo services stopped."
 
 # Development targets
 test:

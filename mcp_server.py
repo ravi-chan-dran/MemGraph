@@ -12,7 +12,7 @@ import uvicorn
 from app.memory.service import memory_service
 from app.core.config import settings
 from app.core.bedrock import bedrock_client
-from app.stores.graph_neo4j import get_get_graph_store()
+from app.stores.graph_neo4j import get_graph_store
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

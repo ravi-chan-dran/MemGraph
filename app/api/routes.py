@@ -341,6 +341,21 @@ async def forget_memory(request: ForgetMemoryRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/memory/facts")
+async def get_memory_facts(guid: str = Query(..., description="User GUID")):
+    """Get all facts for a user."""
+    try:
+        from ..stores import kv_store
+        facts = kv_store.get_facts(guid, min_conf=0.0)
+        return {
+            "success": True,
+            "facts": facts,
+            "count": len(facts)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/graph/subgraph")
 async def get_subgraph(
     guid: str = Query(..., description="User GUID"),

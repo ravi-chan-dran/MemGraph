@@ -38,12 +38,18 @@ class ChromaVectorStore:
         try:
             episode_id = f"{guid}_{uuid.uuid4().hex[:8]}"
             
-            # Prepare metadata with guid and timestamp
+            # Prepare metadata with guid and timestamp, converting lists to strings
             episode_metadata = {
                 "guid": guid,
-                "timestamp": datetime.now().isoformat(),
-                **metadata
+                "timestamp": datetime.now().isoformat()
             }
+            
+            # Add metadata, converting lists to strings for ChromaDB compatibility
+            for key, value in metadata.items():
+                if isinstance(value, list):
+                    episode_metadata[key] = ",".join(str(item) for item in value)
+                else:
+                    episode_metadata[key] = value
             
             self.collection.upsert(
                 ids=[episode_id],
@@ -72,12 +78,21 @@ class ChromaVectorStore:
                 since_date = datetime.now() - timedelta(days=since_days)
                 where_clause["timestamp"] = {"$gte": since_date.isoformat()}
             
-            # Query the collection
-            results = self.collection.query(
-                query_embeddings=[query_embedding],
-                n_results=k,
-                where=where_clause
-            )
+            # Query the collection - use simple where clause for ChromaDB compatibility
+            try:
+                results = self.collection.query(
+                    query_embeddings=[query_embedding],
+                    n_results=k,
+                    where=where_clause
+                )
+            except Exception as e:
+                # Fallback to simple guid filter if complex where clause fails
+                print(f"ChromaDB query error, using fallback: {e}")
+                results = self.collection.query(
+                    query_embeddings=[query_embedding],
+                    n_results=k,
+                    where={"guid": guid}
+                )
             
             # Format results
             episodes = []
