@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoryGraph: System Design Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 50px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .executive-summary {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .executive-summary h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .toc h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .toc a {
+            color: #495057;
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 1.1em;
+        }
+
+        .toc a:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 3em;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        h2 {
+            font-size: 2.2em;
+            color: #667eea;
+            border-bottom: 3px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.6em;
+            color: #495057;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .architecture-diagram {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .layer {
+            background: #e3f2fd;
+            border: 3px solid #2196f3;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            font-weight: bold;
+            color: #1976d2;
+            font-size: 1.1em;
+        }
+
+        .component {
+            background: #f3e5f5;
+            border: 2px solid #9c27b0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 5px;
+            display: inline-block;
+            min-width: 200px;
+            text-align: center;
+            font-weight: bold;
+            color: #7b1fa2;
+        }
+
+        .data-model {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .data-model h4 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .algorithm-box {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .algorithm-box h4 {
+            color: #e65100;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        code {
+            background: #f1f3f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 25px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 20px;
+            border-left: 5px solid #ffc107;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .warning {
+            background: #f8d7da;
+            padding: 20px;
+            border-left: 5px solid #dc3545;
+            margin: 20px 0;
+            border-radius: 5px;
+            color: #721c24;
+        }
+
+        .success {
+            background: #d4edda;
+            padding: 20px;
+            border-left: 5px solid #28a745;
+            margin: 20px 0;
+            border-radius: 5px;
+            color: #155724;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        .tech-category {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 5px solid #667eea;
+        }
+
+        .tech-category h4 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .tech-category ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tech-category li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .tech-category li:before {
+            content: "▶";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .mermaid-diagram {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .back-to-top:hover {
+            background: #5a6fd8;
+            transform: translateY(-3px);
+        }
+
+        .toc-toggle {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 25px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .toc-toggle:hover {
+            background: #5a6fd8;
+        }
+
+        .problem-solution {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        .problem-box {
+            background: #f8d7da;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #dc3545;
+        }
+
+        .solution-box {
+            background: #d4edda;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #28a745;
+        }
+
+        .problem-box h3 {
+            color: #721c24;
+            margin-bottom: 15px;
+        }
+
+        .solution-box h3 {
+            color: #155724;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2.5em;
+            }
+            
+            .problem-solution {
+                grid-template-columns: 1fr;
+            }
+            
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .component {
+                min-width: 150px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 MemoryGraph</h1>
+            <p>System Design Document - AI with Persistent Memory</p>
+        </div>
+
+        <div class="executive-summary">
+            <h2>📋 Executive Summary</h2>
+            <p>MemoryGraph is an advanced AI system that provides persistent memory capabilities to Large Language Models (LLMs), enabling them to learn, remember, and reason about information across multiple interactions. This document outlines the complete system design, including architecture, data models, algorithms, and implementation strategies.</p>
+        </div>
+
+        <button class="toc-toggle" onclick="toggleTOC()">📚 Toggle Table of Contents</button>
+        
+        <div class="toc" id="toc">
+            <h2>📖 Table of Contents</h2>
+            <ul>
+                <li><a href="#overview">System Overview</a></li>
+                <li><a href="#principles">Design Principles</a></li>
+                <li><a href="#architecture">System Architecture</a></li>
+                <li><a href="#data-models">Data Models</a></li>
+                <li><a href="#algorithms">Algorithms and Processing</a></li>
+                <li><a href="#storage">Storage Design</a></li>
+                <li><a href="#api">API Design</a></li>
+                <li><a href="#security">Security and Privacy</a></li>
+                <li><a href="#scalability">Scalability and Performance</a></li>
+                <li><a href="#monitoring">Monitoring and Observability</a></li>
+                <li><a href="#deployment">Deployment Strategy</a></li>
+            </ul>
+        </div>
+
+        <section id="overview" class="section">
+            <h1>🎯 System Overview</h1>
+            
+            <div class="problem-solution">
+                <div class="problem-box">
+                    <h3>❌ Problem Statement</h3>
+                    <p>Traditional LLMs lack persistent memory, requiring users to provide context in every interaction. This leads to:</p>
+                    <ul>
+                        <li>Repetitive information sharing</li>
+                        <li>Loss of conversation history</li>
+                        <li>Inability to build on previous interactions</li>
+                        <li>Poor user experience for complex, multi-session tasks</li>
+                    </ul>
+                </div>
+                
+                <div class="solution-box">
+                    <h3>✅ Solution</h3>
+                    <p>MemoryGraph provides a comprehensive memory system that:</p>
+                    <ul>
+                        <li>Stores and retrieves information across sessions</li>
+                        <li>Maintains multiple types of memory (factual, episodic, graph-based)</li>
+                        <li>Enables transparent reasoning and explanation</li>
+                        <li>Provides user control over memory management</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Key Features</h3>
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h4>🧠 Persistent Memory</h4>
+                    <ul>
+                        <li>Information persists across sessions</li>
+                        <li>Multi-modal storage</li>
+                        <li>Real-time learning</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🔍 Transparent Reasoning</h4>
+                    <ul>
+                        <li>AI shows decision process</li>
+                        <li>Explainable conclusions</li>
+                        <li>Audit trails</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🎛️ User Control</h4>
+                    <ul>
+                        <li>Selective forgetting</li>
+                        <li>Memory management</li>
+                        <li>Privacy controls</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🧪 A/B Testing</h4>
+                    <ul>
+                        <li>Compare memory vs no-memory</li>
+                        <li>Performance measurement</li>
+                        <li>Continuous improvement</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="principles" class="section">
+            <h2>🏗️ Design Principles</h2>
+            
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h4>🔧 Modularity</h4>
+                    <ul>
+                        <li>Clear separation of concerns</li>
+                        <li>Independent, testable components</li>
+                        <li>Loose coupling between modules</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>📈 Scalability</h4>
+                    <ul>
+                        <li>Horizontal scaling capability</li>
+                        <li>Efficient resource utilization</li>
+                        <li>Performance optimization</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🛡️ Reliability</h4>
+                    <ul>
+                        <li>Fault tolerance</li>
+                        <li>Error handling and recovery</li>
+                        <li>Data consistency</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🔍 Transparency</h4>
+                    <ul>
+                        <li>Explainable AI decisions</li>
+                        <li>Audit trails</li>
+                        <li>User control over data</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🔒 Privacy</h4>
+                    <ul>
+                        <li>Data isolation by user</li>
+                        <li>Selective forgetting</li>
+                        <li>Source attribution</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="section">
+            <h2>🏛️ System Architecture</h2>
+            
+            <h3>High-Level Architecture</h3>
+            <div class="architecture-diagram">
+                <div class="layer">User Interface Layer</div>
+                <div class="component">Streamlit UI</div>
+                <div class="component">A/B Relay</div>
+                <div class="component">MCP Server</div>
+                <div class="component">REST API</div>
+                
+                <div class="layer">Application Layer</div>
+                <div class="component">Memory Service</div>
+                <div class="component">Memory Extractor</div>
+                <div class="component">Memory Retriever</div>
+                
+                <div class="layer">Storage Layer</div>
+                <div class="component">SQLite (Facts)</div>
+                <div class="component">ChromaDB (Episodes)</div>
+                <div class="component">Neo4j (Graph)</div>
+                
+                <div class="layer">Infrastructure Layer</div>
+                <div class="component">AWS Bedrock</div>
+                <div class="component">Docker</div>
+                <div class="component">Monitoring</div>
+                <div class="component">Logging</div>
+            </div>
+
+            <h3>Component Interactions</h3>
+            <div class="mermaid-diagram">
+                <p><strong>Component Flow Diagram</strong></p>
+                <p>UI → A/B Relay → FastAPI → Memory Service → Storage Layer</p>
+                <p>Memory Service → Memory Extractor → AWS Bedrock</p>
+                <p>Memory Service → Memory Retriever → Storage Layer</p>
+            </div>
+        </section>
+
+        <section id="data-models" class="section">
+            <h2>📊 Data Models</h2>
+            
+            <h3>1. Factual Memory Model</h3>
+            <div class="data-model">
+                <h4>Fact Structure</h4>
+                <pre><code>class Fact:
+    guid: str          # User identifier
+    key: str           # Fact key
+    value: str         # Fact value
+    confidence: float  # Confidence score (0.0-1.0)
+    source: str        # Source channel
+    ts: str           # Timestamp
+    created_at: datetime
+    updated_at: datetime</code></pre>
+                <p><strong>Characteristics:</strong> Key-value structure, confidence scoring, source attribution, temporal tracking</p>
+            </div>
+
+            <h3>2. Episodic Memory Model</h3>
+            <div class="data-model">
+                <h4>Episode Structure</h4>
+                <pre><code>class Episode:
+    id: str                    # Unique identifier
+    guid: str                  # User identifier
+    text: str                  # Episode text
+    embedding: List[float]     # Vector embedding
+    metadata: Dict[str, Any]   # Additional metadata
+    importance: float          # Importance score
+    tags: List[str]           # Episode tags
+    created_at: datetime</code></pre>
+                <p><strong>Characteristics:</strong> Vector-based storage, semantic similarity search, metadata enrichment, importance scoring</p>
+            </div>
+
+            <h3>3. Graph Memory Model</h3>
+            <div class="data-model">
+                <h4>Entity and Relationship Structure</h4>
+                <pre><code>class Entity:
+    name: str                  # Entity name
+    type: str                  # Entity type
+    aliases: List[str]         # Alternative names
+    properties: Dict[str, Any] # Additional properties
+    created_at: datetime
+    updated_at: datetime
+
+class Relationship:
+    subject: str               # Source entity
+    predicate: str             # Relationship type
+    object: str                # Target entity
+    confidence: float          # Relationship confidence
+    properties: Dict[str, Any] # Additional properties
+    created_at: datetime</code></pre>
+                <p><strong>Characteristics:</strong> Graph-based structure, relationship modeling, path finding capabilities, constraint enforcement</p>
+            </div>
+        </section>
+
+        <section id="algorithms" class="section">
+            <h2>⚙️ Algorithms and Processing</h2>
+            
+            <h3>1. Information Extraction Algorithm</h3>
+            <div class="algorithm-box">
+                <h4>Extraction Process</h4>
+                <pre><code>def extract_information(text: str, channel: str, timestamp: str) -> Dict:
+    """
+    Extract structured information from text using Claude.
+    
+    Steps:
+    1. Send text to Claude with extraction prompts
+    2. Parse JSON response
+    3. Filter by confidence threshold
+    4. Validate entity types and predicates
+    5. Return structured data
+    """
+    
+    # Extract facts and episodes
+    structured = extract_structured(text, channel, timestamp)
+    
+    # Extract entities and triples
+    triples = extract_triples(text, channel, timestamp)
+    
+    # Merge and validate
+    return merge_extractions(structured, triples)</code></pre>
+            </div>
+
+            <h3>2. Memory Scoring Algorithm</h3>
+            <div class="algorithm-box">
+                <h4>Scoring Formula</h4>
+                <pre><code>def calculate_memory_score(similarity: float, recency: float, 
+                          importance: float, graph_proximity: float) -> float:
+    """
+    Calculate weighted memory score.
+    
+    Formula:
+    score = 0.55 * similarity + 0.2 * recency + 0.15 * importance + 0.1 * graph_proximity
+    """
+    
+    return (0.55 * similarity + 
+            0.2 * recency + 
+            0.15 * importance + 
+            0.1 * graph_proximity)</code></pre>
+            </div>
+
+            <h3>3. Graph Path Finding Algorithm</h3>
+            <div class="algorithm-box">
+                <h4>Path Finding Process</h4>
+                <pre><code>def find_shortest_paths(user_guid: str, topic: str, max_depth: int = 3) -> List[Path]:
+    """
+    Find shortest paths from user to topic in knowledge graph.
+    
+    Algorithm:
+    1. Start from user node
+    2. Traverse graph using BFS
+    3. Stop at max_depth or when topic found
+    4. Return all valid paths
+    """
+    
+    paths = []
+    queue = [(user_guid, [user_guid])]
+    visited = set()
+    
+    while queue and len(paths) < max_paths:
+        current, path = queue.pop(0)
+        
+        if current in visited:
+            continue
+            
+        visited.add(current)
+        
+        if current == topic:
+            paths.append(Path(path))
+            continue
+            
+        if len(path) < max_depth:
+            neighbors = get_neighbors(current)
+            for neighbor in neighbors:
+                queue.append((neighbor, path + [neighbor]))
+    
+    return paths</code></pre>
+            </div>
+        </section>
+
+        <section id="storage" class="section">
+            <h2>💾 Storage Design</h2>
+            
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h4>🗄️ SQLite (Facts)</h4>
+                    <ul>
+                        <li>ACID compliance</li>
+                        <li>Fast lookups</li>
+                        <li>Embedded database</li>
+                        <li>Structured facts storage</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🔍 ChromaDB (Episodes)</h4>
+                    <ul>
+                        <li>Vector similarity search</li>
+                        <li>Persistent storage</li>
+                        <li>Metadata filtering</li>
+                        <li>Semantic search</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🕸️ Neo4j (Graph)</h4>
+                    <ul>
+                        <li>Graph queries</li>
+                        <li>Relationship traversal</li>
+                        <li>Constraint enforcement</li>
+                        <li>Path finding</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Database Schemas</h3>
+            <div class="architecture-diagram">
+                <h4>SQLite Schema</h4>
+                <pre><code>CREATE TABLE facts (
+    guid TEXT NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    confidence REAL NOT NULL,
+    source TEXT NOT NULL,
+    ts TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (guid, key)
+);</code></pre>
+            </div>
+
+            <div class="architecture-diagram">
+                <h4>Neo4j Graph Schema</h4>
+                <pre><code>// Node labels
+(:User {guid: string, created_at: datetime})
+(:Fact {key: string, value: string, confidence: float, source: string, ts: string})
+(:Entity {name: string, type: string, aliases: list})
+(:Episode {summary: string, importance: float, tags: list})
+
+// Relationship types
+(:User)-[:HAS_FACT]->(:Fact)
+(:User)-[:HAS_EPISODE]->(:Episode)
+(:Entity)-[:RELATED_TO]->(:Entity)
+(:Episode)-[:MENTIONS]->(:Entity)
+(:Entity)-[:HAS_FORMULA]->(:Fact)</code></pre>
+            </div>
+        </section>
+
+        <section id="api" class="section">
+            <h2>🔌 API Design</h2>
+            
+            <h3>REST API Endpoints</h3>
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h4>🧠 Memory Operations</h4>
+                    <ul>
+                        <li>POST /memory/write</li>
+                        <li>POST /memory/search</li>
+                        <li>POST /memory/summarize</li>
+                        <li>POST /memory/forget</li>
+                        <li>GET /memory/facts</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🕸️ Graph Operations</h4>
+                    <ul>
+                        <li>GET /graph/subgraph</li>
+                        <li>GET /graph/paths</li>
+                        <li>GET /graph/entities</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🧪 A/B Testing</h4>
+                    <ul>
+                        <li>POST /chat</li>
+                        <li>POST /toggle</li>
+                        <li>GET /health</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Request/Response Models</h3>
+            <div class="architecture-diagram">
+                <pre><code>class MemoryWriteRequest(BaseModel):
+    guid: str
+    text: str
+    channel: str
+    ts: str
+    thread_id: Optional[str] = None
+
+class MemorySearchResponse(BaseModel):
+    success: bool
+    context_card: str
+    facts: List[Dict[str, Any]]
+    episodes: List[Dict[str, Any]]
+    graph_hits: List[Dict[str, Any]]
+    rationale: str
+    stats: Dict[str, Any]</code></pre>
+            </div>
+        </section>
+
+        <section id="security" class="section">
+            <h2>🔒 Security and Privacy</h2>
+            
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h4>🔐 Data Isolation</h4>
+                    <ul>
+                        <li>User data separation</li>
+                        <li>GUID-based isolation</li>
+                        <li>Access control</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🛡️ Access Control</h4>
+                    <ul>
+                        <li>MCP token authentication</li>
+                        <li>API rate limiting</li>
+                        <li>Role-based access</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🔒 Data Privacy</h4>
+                    <ul>
+                        <li>Selective forgetting</li>
+                        <li>Data anonymization</li>
+                        <li>Source attribution</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="scalability" class="section">
+            <h2>📈 Scalability and Performance</h2>
+            
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h4>🔄 Horizontal Scaling</h4>
+                    <ul>
+                        <li>Kubernetes deployment</li>
+                        <li>Load balancing</li>
+                        <li>Auto-scaling</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🗄️ Database Sharding</h4>
+                    <ul>
+                        <li>User-based sharding</li>
+                        <li>Connection pooling</li>
+                        <li>Read replicas</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>⚡ Caching Strategy</h4>
+                    <ul>
+                        <li>Redis caching</li>
+                        <li>Response caching</li>
+                        <li>Embedding caching</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="monitoring" class="section">
+            <h2>📊 Monitoring and Observability</h2>
+            
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h4>📈 Metrics Collection</h4>
+                    <ul>
+                        <li>Prometheus metrics</li>
+                        <li>Custom counters</li>
+                        <li>Performance histograms</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>📝 Logging Strategy</h4>
+                    <ul>
+                        <li>Structured logging</li>
+                        <li>Log levels</li>
+                        <li>Context tracking</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🏥 Health Checks</h4>
+                    <ul>
+                        <li>Service health</li>
+                        <li>Database connectivity</li>
+                        <li>External dependencies</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="deployment" class="section">
+            <h2>🚀 Deployment Strategy</h2>
+            
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h4>💻 Development</h4>
+                    <ul>
+                        <li>Docker Compose</li>
+                        <li>Local services</li>
+                        <li>Hot reloading</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>🏭 Production</h4>
+                    <ul>
+                        <li>Kubernetes</li>
+                        <li>CI/CD pipeline</li>
+                        <li>Blue-green deployment</li>
+                    </ul>
+                </div>
+                <div class="tech-category">
+                    <h4>☁️ Cloud</h4>
+                    <ul>
+                        <li>AWS services</li>
+                        <li>Managed databases</li>
+                        <li>Auto-scaling groups</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Deployment Architecture</h3>
+            <div class="architecture-diagram">
+                <div class="layer">Load Balancer (nginx)</div>
+                <div class="layer">API Gateway (Kong/AWS)</div>
+                <div class="layer">CDN (CloudFront)</div>
+                
+                <div class="layer">API Services (ECS/K8s)</div>
+                <div class="layer">MCP Server (Lambda)</div>
+                <div class="layer">A/B Relay (ECS/K8s)</div>
+                
+                <div class="layer">RDS PostgreSQL (Facts)</div>
+                <div class="layer">OpenSearch (Vectors)</div>
+                <div class="layer">Neptune (Graph)</div>
+            </div>
+        </section>
+
+        <div class="success">
+            <h3>🎯 Conclusion</h3>
+            <p>MemoryGraph represents a significant advancement in AI capabilities, providing persistent memory that enables more human-like interactions. The system is designed with scalability, reliability, and privacy in mind, making it suitable for production deployment across various use cases.</p>
+            <p>The modular architecture allows for independent scaling of components, while the comprehensive monitoring and observability features ensure system reliability. The transparent reasoning capabilities and user control over memory provide the necessary trust and privacy features required for enterprise deployment.</p>
+            <p>This system design provides a solid foundation for building AI applications that can learn, remember, and reason about information across multiple interactions, opening up new possibilities for intelligent automation and human-AI collaboration.</p>
+        </div>
+    </div>
+
+    <button class="back-to-top" onclick="scrollToTop()" title="Back to Top">↑</button>
+
+    <script>
+        function toggleTOC() {
+            const toc = document.getElementById('toc');
+            toc.style.display = toc.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Show/hide back to top button
+        window.addEventListener('scroll', function() {
+            const backToTop = document.querySelector('.back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.style.display = 'block';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        });
+
+        // Initialize
+        document.querySelector('.back-to-top').style.display = 'none';
+    </script>
+</body>
+</html>
