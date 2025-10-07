@@ -114,7 +114,7 @@ class MemoryService:
             episodes = vector_store.query_similar(guid, query, k, since_days)
             
             # Get facts from SQLite
-            facts = kv_store.get_facts(guid, min_conf=0.6)
+            all_facts = kv_store.get_facts(guid, min_conf=0.6)
             
             # Generate query embedding for scoring
             query_embeddings = self.bedrock.titan_embed([query])
@@ -130,6 +130,34 @@ class MemoryService:
             
             # Sort by score
             scored_episodes.sort(key=lambda x: x["score"], reverse=True)
+            
+            # Filter and rank facts by relevance to query
+            scored_facts = []
+            for fact in all_facts:
+                # Simple relevance scoring based on key/value matching query terms
+                relevance_score = 0
+                fact_text = f"{fact['key']} {fact['value']}".lower()
+                
+                # Check for exact matches
+                for token in query_tokens:
+                    if token in fact_text:
+                        relevance_score += 1
+                
+                # Check for partial matches
+                for token in query_tokens:
+                    if any(token in fact_text for word in fact_text.split()):
+                        relevance_score += 0.5
+                
+                # Only include facts with some relevance
+                if relevance_score > 0:
+                    fact["relevance_score"] = relevance_score
+                    scored_facts.append(fact)
+            
+            # Sort facts by relevance score
+            scored_facts.sort(key=lambda x: x["relevance_score"], reverse=True)
+            
+            # Take top k facts
+            facts = scored_facts[:k]
             
             # Get graph hits if requested
             graph_hits = []
@@ -150,7 +178,6 @@ class MemoryService:
                         "length": 2,
                         "reasoning": f"Found {len(facts)} relevant facts about {query}"
                     }]
-                    print(f"DEBUG: Created graph_hits with {len(facts)} facts")
             
             # Build context card
             context_card = self.retriever.build_context_card(
