@@ -57,6 +57,30 @@ seed-once:
 	@source .venv/bin/activate && python scripts/seed_demo.py
 	@echo "✅ Demo data seeded! Now run 'make demo-on' to start services."
 
+inspect-storage:
+	@echo "🔍 Inspecting all storage layers..."
+	@source .venv/bin/activate && python scripts/storage_inspector.py
+
+inspect-storage-user:
+	@echo "🔍 Inspecting storage for specific user..."
+	@source .venv/bin/activate && python scripts/storage_inspector.py $(GUID)
+
+visualize-storage:
+	@echo "🎨 Creating storage visualizations..."
+	@source .venv/bin/activate && python scripts/storage_visualizer.py
+
+visualize-storage-user:
+	@echo "🎨 Creating storage visualizations for specific user..."
+	@source .venv/bin/activate && python scripts/storage_visualizer.py $(GUID)
+
+analyze-storage:
+	@echo "📊 Analyzing storage architecture..."
+	@source .venv/bin/activate && python scripts/storage_analyzer.py
+
+analyze-storage-user:
+	@echo "📊 Analyzing storage architecture for specific user..."
+	@source .venv/bin/activate && python scripts/storage_analyzer.py $(GUID)
+
 # Demo orchestration
 demo-on:
 	@echo "Starting demo environment with improved startup script..."

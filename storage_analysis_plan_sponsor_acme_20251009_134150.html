@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MemoryGraph Storage Analysis Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .header { background: #f0f0f0; padding: 20px; border-radius: 10px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .metric { display: inline-block; margin: 10px; padding: 10px; background: #e8f4f8; border-radius: 5px; }
+        .recommendation { background: #fff3cd; padding: 10px; margin: 5px 0; border-left: 4px solid #ffc107; }
+        .success { background: #d4edda; padding: 10px; margin: 5px 0; border-left: 4px solid #28a745; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧠 MemoryGraph Storage Analysis Report</h1>
+        <p><strong>GUID:</strong> plan_sponsor_acme</p>
+        <p><strong>Generated:</strong> 2025-10-09T13:41:50.164082</p>
+    </div>
+    
+    <div class="section">
+        <h2>📊 Executive Summary</h2>
+        <div class="metric">
+            <strong>Total Data Points:</strong> 230
+        </div>
+        <div class="metric">
+            <strong>Data Quality Score:</strong> 1.432
+        </div>
+        <div class="metric">
+            <strong>Storage Health:</strong> ✅ Healthy
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>🏗️ Architecture Overview</h2>
+        <p>MemoryGraph uses a multi-modal storage architecture with three specialized layers</p>
+        <h3>Storage Layers:</h3>
+        <ul>
+            <li><strong>SQLite:</strong> Structured facts storage</li>
+            <li><strong>ChromaDB:</strong> Semantic episode storage</li>
+            <li><strong>Neo4j:</strong> Graph relationship storage</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>📈 Storage Layer Analysis</h2>
+        <h3>SQLite (Facts)</h3>
+        <p>Total Items: 98</p>
+        <p>Storage Efficiency: High - optimized for key-value lookups</p>
+        
+        <h3>ChromaDB (Episodes)</h3>
+        <p>Total Items: 32</p>
+        <p>Storage Efficiency: Medium - optimized for semantic search</p>
+        
+        <h3>Neo4j (Graph)</h3>
+        <p>Total Items: 100</p>
+        <p>Storage Efficiency: Medium - optimized for graph traversal</p>
+    </div>
+    
+    <div class="section">
+        <h2>🎯 Data Quality Analysis</h2>
+        <h3>Facts Quality</h3>
+        <p>Average Confidence: 0.97</p>
+        <p>High Confidence Facts: 100.0%</p>
+        
+        <h3>Episodes Quality</h3>
+        <p>Average Importance: 1.894</p>
+        <p>High Importance Episodes: 87.5%</p>
+    </div>
+    
+    <div class="section">
+        <h2>💡 Recommendations</h2>
+        <div class="success">✅ Storage system is healthy and well-balanced</div>
+    </div>
+    
+    <div class="section">
+        <h2>🔧 Technical Details</h2>
+        <h3>Data Flow</h3>
+        <pre>{
+  "input_sources": [
+    "email",
+    "mock-chat",
+    "mock-email",
+    "mock-teams",
+    "mock-voice",
+    "phone",
+    "slack",
+    "teams",
+    "unknown"
+  ],
+  "processing_stages": [
+    "Text Input",
+    "Claude Extraction",
+    "Multi-Store Write",
+    "Vector Embedding",
+    "Graph Relationship Creation",
+    "Retrieval & Ranking",
+    "Context Generation"
+  ],
+  "data_transformations": {
+    "text_to_facts": "Claude extracts structured facts from raw text",
+    "text_to_episodes": "Claude creates semantic episode summaries",
+    "text_to_entities": "Claude identifies entities and relationships",
+    "facts_to_sqlite": "Structured facts stored with confidence scores",
+    "episodes_to_chromadb": "Semantic episodes stored as vector embeddings",
+    "entities_to_neo4j": "Entities and relationships stored as graph nodes"
+  },
+  "retrieval_flow": {
+    "query_processing": "User query processed through multiple retrieval methods",
+    "vector_search": "ChromaDB performs semantic similarity search",
+    "fact_lookup": "SQLite provides structured fact retrieval",
+    "graph_traversal": "Neo4j finds relationship paths",
+    "ranking": "Multi-factor scoring combines all results",
+    "context_generation": "Claude creates final context card"
+  }
+}</pre>
+        
+        <h3>Performance Characteristics</h3>
+        <pre>{
+  "storage_capacity": {
+    "sqlite": "98 facts (estimated 49.0KB)",
+    "chromadb": "32 episodes (estimated 64KB)",
+    "neo4j": "100 nodes (estimated 100KB)"
+  },
+  "query_performance": {
+    "sqlite": "Fast - O(1) key lookups, O(log n) range queries",
+    "chromadb": "Medium - O(k) vector similarity search",
+    "neo4j": "Variable - O(depth) graph traversal"
+  },
+  "scalability": {
+    "sqlite": "Good - up to 1M facts per user",
+    "chromadb": "Good - up to 100K episodes per user",
+    "neo4j": "Good - up to 1M nodes per user"
+  },
+  "memory_usage": {
+    "sqlite": "Low - embedded database",
+    "chromadb": "Medium - vector storage",
+    "neo4j": "Medium - graph database"
+  }
+}</pre>
+    </div>
+</body>
+</html>
+        

@@ -1,0 +1,206 @@
+{
+  "guid": "plan_sponsor_acme",
+  "timestamp": "2025-10-09T13:37:45.655729",
+  "sqlite": {
+    "total_facts": 98,
+    "unique_keys": 98,
+    "average_confidence": 0.97,
+    "by_source": {
+      "mock-email": 8,
+      "slack": 24,
+      "email": 29,
+      "teams": 21,
+      "phone": 7,
+      "mock-teams": 4,
+      "mock-voice": 1,
+      "mock-chat": 4
+    },
+    "sample_facts": [
+      {
+        "key": "company match increase",
+        "value": "15%",
+        "confidence": 1.0,
+        "source": "mock-email",
+        "ts": "2025-10-07T19:50:05.719305"
+      },
+      {
+        "key": "Q1 report timing",
+        "value": "April",
+        "confidence": 1.0,
+        "source": "slack",
+        "ts": "2025-01-20T14:30:00Z"
+      },
+      {
+        "key": "mid-year true-up timing",
+        "value": "July",
+        "confidence": 1.0,
+        "source": "slack",
+        "ts": "2025-01-20T14:30:00Z"
+      },
+      {
+        "key": "401k participation target",
+        "value": "85%",
+        "confidence": 1.0,
+        "source": "slack",
+        "ts": "2025-01-20T14:00:00Z"
+      },
+      {
+        "key": "401k plan participation",
+        "value": "92%",
+        "confidence": 1.0,
+        "source": "slack",
+        "ts": "2025-01-20T14:00:00Z"
+      }
+    ],
+    "all_keys": [
+      "event_date",
+      "employee contribution",
+      "401k plan status",
+      "target_timeframe",
+      "Key message",
+      "review_topics",
+      "target_participation_rate",
+      "launch deadline",
+      "next_step",
+      "Employer matching",
+      "start_date",
+      "meeting_time",
+      "opt-out rate",
+      "401k plan participation",
+      "First payroll deduction date",
+      "number of employees enrolled",
+      "Number of eligible employees",
+      "timestamp",
+      "event_topics",
+      "employer match amount"
+    ],
+    "confidence_distribution": {
+      "0.0-0.2": 0,
+      "0.2-0.4": 0,
+      "0.4-0.6": 0,
+      "0.6-0.8": 0,
+      "0.8-1.0": 98
+    }
+  },
+  "chromadb": {
+    "total_episodes": 32,
+    "by_source": {
+      "unknown": 32
+    },
+    "by_channel": {
+      "email": 8,
+      "phone": 2,
+      "slack": 9,
+      "mock-email": 3,
+      "mock-voice": 1,
+      "teams": 5,
+      "mock-teams": 2,
+      "mock-chat": 2
+    },
+    "average_importance": 1.894,
+    "sample_episodes": [
+      {
+        "id": "plan_sponsor_acme_6c0b6e38",
+        "text": "Mike Chen informs Sarah Johnson that a plan has been approved by DOL, effective January 1st, 2025, with plan number 12345. He has updated the participant portal and employee communications can begin. The first payroll deduction for the plan will be on January 15th.",
+        "metadata": {
+          "thread_id": "dol_approval",
+          "channel": "email",
+          "ts": "2024-11-15T11:00:00Z",
+          "timestamp": "2025-10-07T16:16:26.581301",
+          "importance": 1.0,
+          "tags": "plan approval,employee communications,payroll deductions",
+          "guid": "plan_sponsor_acme"
+        },
+        "distance": 156.02682495117188,
+        "similarity": -155.02682495117188
+      },
+      {
+        "id": "plan_sponsor_acme_4f33975b",
+        "text": "Sarah Johnson requests to schedule a call with Mike Chen to finalize the 401k plan setup for ACME Corp, including discussing the enrollment process and contribution matching.",
+        "metadata": {
+          "guid": "plan_sponsor_acme",
+          "timestamp": "2025-10-07T16:11:29.700440",
+          "thread_id": "plan_setup_2024",
+          "importance": 4,
+          "ts": "2024-10-28T09:15:00Z",
+          "tags": "401k,plan setup,enrollment,contribution matching",
+          "channel": "email"
+        },
+        "distance": 158.591796875,
+        "similarity": -157.591796875
+      },
+      {
+        "id": "plan_sponsor_acme_19baceb1",
+        "text": "Mike Chen called Sarah to discuss compliance requirements for a mid-year plan implementation, including ADP/ACP testing, safe harbor match, potential QNEC, and the 5500 filing deadline of July 31st.",
+        "metadata": {
+          "importance": 0.9,
+          "guid": "plan_sponsor_acme",
+          "tags": "compliance,retirement plan,testing,filing",
+          "channel": "phone",
+          "thread_id": "compliance_call",
+          "timestamp": "2025-10-07T16:14:00.099866",
+          "ts": "2024-11-01T15:30:00Z"
+        },
+        "distance": 169.2708740234375,
+        "similarity": -168.2708740234375
+      }
+    ],
+    "importance_distribution": {
+      "0.0-0.2": 0,
+      "0.2-0.4": 0,
+      "0.4-0.6": 4,
+      "0.6-0.8": 0,
+      "0.8-1.0": 28
+    }
+  },
+  "neo4j": {
+    "total_nodes": 100,
+    "node_types": {
+      "Entity": 140,
+      "Fact": 102,
+      "User": 1
+    },
+    "relationship_types": {
+      "RELATES_TO": 139
+    },
+    "sample_nodes": [
+      {
+        "n": {
+          "guid": "plan_sponsor_acme",
+          "created_at": "2025-10-06T12:24:35.830000000+00:00"
+        }
+      },
+      {
+        "n": {
+          "name": "12345"
+        }
+      },
+      {
+        "n": {
+          "name": "bi-weekly payroll processing"
+        }
+      },
+      {
+        "n": {
+          "name": "November"
+        }
+      },
+      {
+        "n": {
+          "name": "Mid-year true-up"
+        }
+      }
+    ],
+    "subgraph_size": 100
+  },
+  "summary": {
+    "total_data_points": 230,
+    "storage_health": "healthy",
+    "data_distribution": {
+      "facts": 98,
+      "episodes": 32,
+      "graph_nodes": 100
+    },
+    "recommendations": []
+  }
+}
